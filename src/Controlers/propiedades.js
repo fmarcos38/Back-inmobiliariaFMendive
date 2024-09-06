@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { normalizaProps } = require('../Helpers/normalizaProps');
+const { normalizaProps, normalizoPropiedad } = require('../Helpers/normalizaProps');
 
 /* 
 
@@ -19,7 +19,7 @@ const url = process.env.URL;
 //trae propiedades
 const getProperties = async(req, res) => { 
     const {limit, offset, operacion, tipo, precioMin, precioMax} = req.query; 
-//ver error de limit
+console.log("data:", req.query);
     try {
         let resp;
         let total;
@@ -65,7 +65,23 @@ const getProperties = async(req, res) => {
     }
 };
 
+//detalle propiedad por ID
+const getProperty = async(req, res) => {
+    const {id} = req.params;
+    try {
+        let resp;
+        resp = await axios.get(`https://www.tokkobroker.com/api/v1/property/${id}?lang=es_ar&format=json&key=${apiKey}`);
+        //normalizo data
+        resp = normalizoPropiedad(resp.data)
+
+        return res.json(resp);
+    } catch (error) {
+        console.log(error);
+    }
+};
+
 
 module.exports = {
-    getProperties
+    getProperties,
+    getProperty,
 }
