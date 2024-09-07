@@ -86,7 +86,7 @@ const normalizoPropiedad = (p) => {
         id: p.id,
         codigoReferencia: p.reference_code,
         tituloPublicacion: p.publication_title,
-        direccion: p.real_address,
+        direccion: p.address,
         descripcion: p.description,
         disposicion: p.disposition,
         expensas: p.expenses,

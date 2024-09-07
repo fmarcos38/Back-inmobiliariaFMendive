@@ -7,6 +7,6 @@ const router = express.Router();
 router.get('/', getProperties);
 
 //trae prop para detalle por ID
-router.get('/detalle/:id', getProperty);
+router.get('/:id', getProperty);
 
 module.exports = router; 
