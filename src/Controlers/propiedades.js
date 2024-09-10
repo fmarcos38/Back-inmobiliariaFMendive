@@ -31,7 +31,7 @@ console.log("data:", req.query);
             resp = await axios.get(`${url}&key=${apiKey}`);
         }        
         //normalizo data q me llega
-        total = resp.data.meta.total_count;        
+        total = resp.data.meta.total_count;         
         propiedades = normalizaProps(resp.data.objects); 
 
         // Filtros
@@ -55,6 +55,9 @@ console.log("data:", req.query);
                 )
             );
         }
+
+        //actualizo total
+        total = propiedades.length;
 
         res.json({
             total,
