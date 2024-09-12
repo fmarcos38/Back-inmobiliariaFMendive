@@ -75,7 +75,7 @@ const normalizaProps = (propiedades) => {
             antiguedad: p.age,
             cantCocheras: p.parking_lot_amount,
             restriccion: p.zonification,
-    
+            videos: p.videos,
         }
         return newProp;
     });
@@ -158,7 +158,7 @@ const normalizoPropiedad = (p) => {
         antiguedad: p.age,
         cantCocheras: p.parking_lot_amount,
         restriccion: p.zonification,
-
+        videos: p.videos,
     }
     return newProp;
 };

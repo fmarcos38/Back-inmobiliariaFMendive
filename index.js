@@ -14,6 +14,7 @@ const port = process.env.PORT || 3001;
 
 app.use('/propiedades', routerPropiedades);
 
+
 app.listen(port, () => {
     console.log(`Servidor escuchando en puerto: ${port}`);
 });

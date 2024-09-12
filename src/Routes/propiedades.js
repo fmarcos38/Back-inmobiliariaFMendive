@@ -9,4 +9,6 @@ router.get('/', getProperties);
 //trae prop para detalle por ID
 router.get('/:id', getProperty);
 
+
+
 module.exports = router; 
