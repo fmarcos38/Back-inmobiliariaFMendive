@@ -18,21 +18,17 @@ const url = process.env.URL;
 
 //trae propiedades
 const getProperties = async(req, res) => { 
-    const {limit, offset, operacion, tipo, precioMin, precioMax} = req.query; 
+    const {limit, offset, operacion, tipo, precioMin, precioMax} = req.query;
 
     try {
         let resp;
-        let total;
+        let total; //total = resp.data.meta.total_count;
         let propiedades;
 
-        if(Number(limit) !== 0 || Number(offset) !== 0){
-            resp = await axios.get(`${url}&limit=${limit}&offset=${offset}&key=${apiKey}`);
-        }else{
-            resp = await axios.get(`${url}&key=${apiKey}`);
-        }        
+        resp = await axios.get(`${url}&key=${apiKey}`);        
         //normalizo data q me llega
-        total = resp.data.meta.total_count;         
-        propiedades = normalizaProps(resp.data.objects); 
+        
+        propiedades = normalizaProps(resp.data.objects);//puedo tener 20 props como max
 
         // Filtros
         //por operación
@@ -42,7 +38,7 @@ const getProperties = async(req, res) => {
             );
         }
         //por tipo de propiedad
-        if(tipo) {
+        if(tipo !== 'todas') {
             propiedades = propiedades.filter(p => p.tipo.nombre === tipo);
         }
         //por precios min y max
@@ -55,13 +51,21 @@ const getProperties = async(req, res) => {
                 )
             );
         }
-
-        //actualizo total
+        
         total = propiedades.length;
+        
+        let propsPaginadas = [];
+        let start = Number(offset); // Índice de inicio basado en el offset
+        let end = start + Number(limit); // Define el rango correcto hasta limit
+
+        // Asegúrate de que no se exceda el tamaño de las propiedades
+        for (let i = start; i < end && i < propiedades.length; i++) {
+            propsPaginadas.push(propiedades[i]);
+        }
 
         res.json({
             total,
-            propiedades
+            propiedades: propsPaginadas,
         });
     } catch (error) {
         console.log(error);
