@@ -18,8 +18,8 @@ const url = process.env.URL;
 
 //trae propiedades
 const getProperties = async(req, res) => { 
-    const {limit, offset, operacion, tipo, precioMin, precioMax} = req.query;
-
+    const {limit, offset, operacion, tipo, precioMin, precioMax} = req.query; 
+console.log("dataFront:", req.query)
     try {
         let resp;
         let total; //total = resp.data.meta.total_count;
@@ -41,16 +41,25 @@ const getProperties = async(req, res) => {
         if(tipo !== 'todas') {
             propiedades = propiedades.filter(p => p.tipo.nombre === tipo);
         }
-        //por precios min y max
-        if(precioMin && precioMax) {
-            propiedades = propiedades.filter(p => 
-                p.operacion.some(item => 
-                    item.precios.some(precio => 
-                        precio.precio >= Number(precioMin) && precio.precio <= Number(precioMax)
-                    )
+
+        //filtro por PRECIO MIN y MAX
+        // Convertir precioMin y precioMax a números
+        const precioMinNum = Number(precioMin);
+        const precioMaxNum = Number(precioMax);
+
+        // Verificar que ambos precios sean válidos
+        if (precioMinNum && precioMaxNum) {
+            propiedades = propiedades.filter(p =>
+                p.operacion.some(item =>
+                    item.precios.some(precio => {
+                        const precioValor = Number(precio.precio); // Convertir el precio a número
+                        // Filtrar precios dentro del rango [precioMinNum, precioMaxNum]
+                        return precioValor >= precioMinNum && precioValor <= precioMaxNum;
+                    })
                 )
             );
         }
+        
         
         total = propiedades.length;
         
