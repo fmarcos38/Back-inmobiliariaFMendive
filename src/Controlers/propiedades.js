@@ -17,67 +17,65 @@ const apiKey = process.env.API_KEY;
 const url = process.env.URL;
 
 //trae propiedades
-const getProperties = async(req, res) => { 
-    const {limit, offset, operacion, tipo, precioMin, precioMax} = req.query; 
-console.log("dataFront:", req.query)
+const getProperties = async (req, res) => {
+    const { operacion, tipo, precioMin, precioMax, limit = 12, offset = 0 } = req.query;
+
     try {
-        let resp;
-        let total; //total = resp.data.meta.total_count;
-        let propiedades;
+        let propiedades = [];
+        let fetchedCount = 0;
+        let currentOffset = 0;
+        const fetchLimit = 20; // Máximo que puede traer la API en una sola llamada
 
-        resp = await axios.get(`${url}&key=${apiKey}`);        
-        //normalizo data q me llega
-        
-        propiedades = normalizaProps(resp.data.objects);//puedo tener 20 props como max
+        // Recuperar todas las propiedades disponibles desde la API
+        do {
+            const resp = await axios.get(`${url}&limit=${fetchLimit}&offset=${currentOffset}&key=${apiKey}`);
+            const fetchedProps = normalizaProps(resp.data.objects);
+            propiedades = [...propiedades, ...fetchedProps];
+            fetchedCount = fetchedProps.length;
+            currentOffset += fetchLimit;
+        } while (fetchedCount === fetchLimit); // Continúa hasta que no se reciban más propiedades
 
-        // Filtros
-        //por operación
-        if(operacion) { 
-            propiedades = propiedades.filter(p => 
-                p.operacion.some(item => item.operacion === operacion)
+        // Aplicar filtros
+        if (operacion) {
+            propiedades = propiedades.filter((p) =>
+                p.operacion.some((item) => item.operacion === operacion)
             );
         }
-        //por tipo de propiedad
-        if(tipo !== 'todas') {
-            propiedades = propiedades.filter(p => p.tipo.nombre === tipo);
+
+        if (tipo && tipo !== 'todas') {
+            propiedades = propiedades.filter((p) => p.tipo.nombre === tipo);
         }
 
-        //filtro por PRECIO MIN y MAX
-        // Convertir precioMin y precioMax a números
-        const precioMinNum = Number(precioMin);
-        const precioMaxNum = Number(precioMax);
+        if (precioMin || precioMax) {
+            const precioMinNum = precioMin ? Number(precioMin) : 0;
+            const precioMaxNum = precioMax ? Number(precioMax) : Infinity;
 
-        // Verificar que ambos precios sean válidos
-        if (precioMinNum && precioMaxNum) {
-            propiedades = propiedades.filter(p =>
-                p.operacion.some(item =>
-                    item.precios.some(precio => {
-                        const precioValor = Number(precio.precio); // Convertir el precio a número
-                        // Filtrar precios dentro del rango [precioMinNum, precioMaxNum]
+            propiedades = propiedades.filter((p) =>
+                p.operacion.some((item) =>
+                    item.precios.some((precio) => {
+                        const precioValor = Number(precio.precio);
                         return precioValor >= precioMinNum && precioValor <= precioMaxNum;
                     })
                 )
             );
         }
-        
-        
-        total = propiedades.length;
-        
-        let propsPaginadas = [];
-        let start = Number(offset); // Índice de inicio basado en el offset
-        let end = start + Number(limit); // Define el rango correcto hasta limit
 
-        // Asegúrate de que no se exceda el tamaño de las propiedades
-        for (let i = start; i < end && i < propiedades.length; i++) {
-            propsPaginadas.push(propiedades[i]);
-        }
+        const total = propiedades.length;
 
+        // Paginación (a 12 propiedades por página)
+        const paginatedProperties = propiedades.slice(
+            Number(offset),
+            Number(offset) + Number(limit)
+        );
+
+        // Respuesta con datos paginados
         res.json({
             total,
-            propiedades: propsPaginadas,
+            propiedades: paginatedProperties,
         });
     } catch (error) {
-        console.log(error);
+        console.error("Error en getProperties:", error.message);
+        res.status(500).json({ error: "Error al obtener las propiedades." });
     }
 };
 
